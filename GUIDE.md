@@ -452,6 +452,14 @@ Open the files in `src/cars/` and read each one carefully.
 4. In `cars.module.ts`: what happens if you forget to import `CarsModule` in `AppModule`?
 5. In `cars.controller.ts`: why does only the DELETE endpoint use `ParseMongoIdPipe`?
 
+**Answer key:**
+
+1. `nombre` is marked as unique because it acts like a logical identifier for each car record, while `modelo` is not unique because many cars can share the same model.
+2. `try/catch` appears in `create` and `update` because they write to the database and can trigger persistence errors (for example duplicate key errors). `findAll`, `findOne`, and `remove` use direct control flow with explicit validations and exceptions.
+3. The service would still run, but logs would lose the `Cars` context label, making tracing and debugging harder when reading server logs.
+4. If `CarsModule` is not imported in `AppModule`, NestJS does not register its controllers/providers in the app graph, so `/cars` routes are not exposed (typically 404).
+5. DELETE uses `ParseMongoIdPipe` to validate ObjectId format before hitting the service remove logic. In contrast, `findOne` and `update` already validate IDs inside `CarsService.findOne`.
+
 **Test the endpoints:**
 
 ```bash

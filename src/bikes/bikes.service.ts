@@ -24,7 +24,7 @@ export class BikesService {
   // Should return all bikes from the database
   // Hint: look at how CarsService.findAll() does it
   async findAll() {
-    // Your code here
+    return this.bikesModel.find();
   }
 
   // TODO: Implement findOne
@@ -34,7 +34,17 @@ export class BikesService {
   // 3. If it does not exist, throw NotFoundException
   // 4. Return the found bike
   async findOne(id: string) {
-    // Your code here
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`Id is not a valid object id`);
+    }
+
+    const bike = await this.bikesModel.findById(id);
+
+    if (!bike) {
+      throw new NotFoundException(`Bike with id ${id} not found`);
+    }
+
+    return bike;
   }
 
   // TODO: Implement create
@@ -43,7 +53,14 @@ export class BikesService {
   // 3. Return the created bike
   // 4. In the catch, call this.handleException(error)
   async create(createBikeDto: CreateBikeDto) {
-    // Your code here
+    createBikeDto.marca = createBikeDto.marca.toLowerCase();
+
+    try {
+      const bike = await this.bikesModel.create(createBikeDto);
+      return bike;
+    } catch (error) {
+      this.handleException(error);
+    }
   }
 
   // TODO: Implement update
@@ -53,7 +70,18 @@ export class BikesService {
   // 4. Return the merged object: { ...bike.toJSON(), ...updateBikeDto }
   // 5. In the catch, call this.handleException(error)
   async update(id: string, updateBikeDto: UpdateBikeDto) {
-    // Your code here
+    if (updateBikeDto.marca) {
+      updateBikeDto.marca = updateBikeDto.marca.toLowerCase();
+    }
+
+    const bike = await this.findOne(id);
+
+    try {
+      await bike.updateOne(updateBikeDto);
+      return { ...bike.toJSON(), ...updateBikeDto };
+    } catch (error) {
+      this.handleException(error);
+    }
   }
 
   // TODO: Implement remove
@@ -62,7 +90,13 @@ export class BikesService {
   // 3. If deletedCount === 0, throw BadRequestException
   // 4. Return with no value (return;)
   async remove(id: string) {
-    // Your code here
+    const { deletedCount } = await this.bikesModel.deleteOne({ _id: id });
+
+    if (deletedCount === 0) {
+      throw new BadRequestException(`Bike with id ${id} not found`);
+    }
+
+    return;
   }
 
   // This method is already implemented — use it in create and update
